@@ -21,7 +21,7 @@ import "github.com/genekkion/squirrel/pkg/seeds"
 store := seeds.NewSeedStorage()
 
 // Generate some seeds!
-store.GenerateNewSeeds(seedCount)
+store.GenerateNewSeeds(5)
 
 // Now we can borrow some seeds
 seeds := store.BorrowSeeds(2)
