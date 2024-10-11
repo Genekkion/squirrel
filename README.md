@@ -34,4 +34,4 @@ v7UUID := seed1.GenerateV7()
 This library adapts code from the library uuid by Google,
 which is licensed under the BSD 3-Clause License.
 
-You can view the original package here: [https://github.com/google/uuid].
+You can view the original package here: [https://github.com/google/uuid](https://github.com/google/uuid).
