@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/genekkion/squirrel/pkg/seeds"
+	"github.com/genekkion/squirrel/seeds"
 	"github.com/rs/zerolog/log"
 )
 
