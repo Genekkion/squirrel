@@ -9,7 +9,7 @@ by the seed, whilst ensuring uniquness via the time component.
 ## Installation
 
 ```bash
-go get github.com/genekkion/squirrel/seeds
+go get -u github.com/genekkion/squirrel/seeds
 ```
 
 ## Usage
