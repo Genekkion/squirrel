@@ -9,13 +9,13 @@ by the seed, whilst ensuring uniquness via the time component.
 ## Installation
 
 ```bash
-go get github.com/genekkion/squirrel/pkg/seeds
+go get github.com/genekkion/squirrel/seeds
 ```
 
 ## Usage
 
 ```go
-import "github.com/genekkion/squirrel/pkg/seeds"
+import "github.com/genekkion/squirrel/seeds"
 
 // Create a new store for the seeds
 store := seeds.NewSeedStorage()
