@@ -15,6 +15,8 @@ go get github.com/genekkion/squirrel
 ## Usage
 
 ```go
+import "github.com/genekkion/squirrel/pkg/seeds"
+
 // Create a new store for the seeds
 store := seeds.NewSeedStorage()
 
