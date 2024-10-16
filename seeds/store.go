@@ -1,10 +1,11 @@
 package seeds
 
 import (
+	"fmt"
+	"log"
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 /*
@@ -71,11 +72,38 @@ seeds which have successfully been inserted.
 Note that this function should not be used in typical conditions,
 mostly for restoring the state of the store from a backup.
 */
-func (store *SeedStore) AddNewSeeds(seedBytesSlice ...[16]byte) [][16]byte {
+func (store *SeedStore) AddFromBytes(seedBytesSlice ...[16]byte) [][16]byte {
 	validSeeds := make([][16]byte, 0, len(seedBytesSlice))
 
 	store.mutex.Lock()
 	for _, seedBytes := range seedBytesSlice {
+		V7seedBytes := GenerateV7WithTimestamp(seedBytes, store.referenceTimestamp)
+		_, exists := store.store[V7seedBytes]
+
+		if !exists {
+			store.store[V7seedBytes] = FromSeedBytes(seedBytes)
+			validSeeds = append(validSeeds, seedBytes)
+		}
+	}
+	store.mutex.Unlock()
+
+	return validSeeds
+}
+
+/*
+Similar to AddFromBytes, but uses slice instead. Slices which do not
+have a length of 16 will be considered invalid.
+*/
+func (store *SeedStore) AddFromSlices(seedSlices ...[]byte) [][16]byte {
+	validSeeds := make([][16]byte, 0, len(seedSlices))
+
+	store.mutex.Lock()
+	for _, seedSlice := range seedSlices {
+		if len(seedSlice) != 16 { // Invalid for UUID
+			continue
+		}
+
+		seedBytes := [16]byte(seedSlice)
 		V7seedBytes := GenerateV7WithTimestamp(seedBytes, store.referenceTimestamp)
 		_, exists := store.store[V7seedBytes]
 
@@ -122,11 +150,10 @@ func (store *SeedStore) BorrowSeeds(count int) []*UUIDSeed {
 Returns the UUIDSeeds previously borrowed from the store. Will ignore
 any seeds which did not belong to the store previously.
 
-Returns the seeds which DID NOT belong to this store previously.
+The function's return value is the seeds which DID NOT belong to this store previously.
 
-Note that after returning, the seeds should no longer be used by the
-called of this function. The seeds should be gotten from the GetSeeds(int)
-function instead.
+Note that after returning seeds to the store, the seeds should no longer be used again
+until borrowing from the store again.
 */
 func (store *SeedStore) ReturnSeeds(seeds ...*UUIDSeed) []*UUIDSeed {
 	invalidSeeds := []*UUIDSeed{}
@@ -165,20 +192,27 @@ func (store *SeedStore) GenerateNewSeeds(count int) {
 
 		// Mutex acquired during batch seed adding.
 		// This potentially improves performance since we do not try 1 by 1.
-		seedsAdded += len(store.AddNewSeeds(seedBatch...))
+		seedsAdded += len(store.AddFromBytes(seedBatch...))
 	}
 }
 
+const (
+	LOG_DEBUG_TEMPLATE = `Displaying debug information of the SeedStore { size: %d, borrowCount: %d, availableCount: %d referenceTimestamp: %d }`
+)
+
 /*
-Simple wrapper around "github.com/rs/zerolog/log" for quick
+Simple logging function which prints to stdout for quick
 debugging purposes.
 */
 func (store *SeedStore) LogDebug() {
 	store.mutex.RLock()
-	log.Debug().
-		Int("size", len(store.store)).
-		Int("borrowCount", store.borrowCount).
-		Int64("referenceTimestamp", store.referenceTimestamp).
-		Msg("Displaying debug information of the SeedStore")
+
+	log.Println(fmt.Sprintf(
+		LOG_DEBUG_TEMPLATE,
+		len(store.store),
+		store.borrowCount,
+		len(store.store)-store.borrowCount,
+		store.referenceTimestamp,
+	))
 	store.mutex.RUnlock()
 }
