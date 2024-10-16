@@ -1,7 +1,6 @@
 package seeds
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -197,7 +196,7 @@ func (store *SeedStore) GenerateNewSeeds(count int) {
 }
 
 const (
-	LOG_DEBUG_TEMPLATE = `Displaying debug information of the SeedStore { size: %d, borrowCount: %d, availableCount: %d referenceTimestamp: %d }`
+	LOG_DEBUG_TEMPLATE = "Displaying debug information of the SeedStore\n { size: %d, borrowCount: %d, availableCount: %d referenceTimestamp: %d }\n"
 )
 
 /*
@@ -207,12 +206,12 @@ debugging purposes.
 func (store *SeedStore) LogDebug() {
 	store.mutex.RLock()
 
-	log.Println(fmt.Sprintf(
+	log.Printf(
 		LOG_DEBUG_TEMPLATE,
 		len(store.store),
 		store.borrowCount,
 		len(store.store)-store.borrowCount,
 		store.referenceTimestamp,
-	))
+	)
 	store.mutex.RUnlock()
 }

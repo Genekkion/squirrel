@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/genekkion/squirrel/seeds"
-	"github.com/rs/zerolog/log"
+	"github.com/google/uuid"
 )
 
 func main() {
@@ -24,14 +25,18 @@ func main() {
 
 	// Lets take a look at two of the seeds
 	seeds := store.BorrowSeeds(2)
+
 	for _, seed := range seeds {
+		seedBytes := seed.GetSeedBytes()            // As [16]byte
+		seedUUID, _ := uuid.FromBytes(seedBytes[:]) // As UUID
 
 		// Lets create 2 V7 and print their info
 		for range 2 {
-			log.Info().
-				Any("seed", seed.GetSeedBytes()).
-				Str("V7UUID", seed.GenerateV7().String()).
-				Msg("Displaying information about the seed and V7UUID")
+
+			log.Printf("Displaying information about the seed and V7UUID\n { seed: %s, V7UUID: %s }\n",
+				seedUUID.String(),
+				seed.GenerateV7().String(),
+			)
 			fmt.Println()
 		}
 	}
@@ -40,10 +45,9 @@ func main() {
 
 	// Finally let's return the seeds to the store
 	invalidSeeds := store.ReturnSeeds(seeds...)
-	log.Info().
-		Int("length", len(invalidSeeds)).
-		Msg("Displaying information for invalid seeds returned")
-	fmt.Println()
+	log.Printf("Displaying information for the invalid seeds returned\n { count: %d }\n",
+		len(invalidSeeds),
+	)
 
 	store.LogDebug()
 }
