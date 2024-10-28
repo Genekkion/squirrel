@@ -12,7 +12,7 @@ func main() {
 	seedCount := 16
 
 	// Create a new store for the seeds
-	store := seeds.NewSeedStorage()
+	store := seeds.NewSeedStore()
 	// Should display an empty store
 	store.LogDebug()
 	fmt.Println()

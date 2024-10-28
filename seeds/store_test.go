@@ -8,7 +8,7 @@ import (
 
 func Test1(test *testing.T) {
 	waitgroup := sync.WaitGroup{}
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	count := 100
 	for range count {
 		waitgroup.Add(1)
@@ -27,7 +27,7 @@ func Test1(test *testing.T) {
 
 func Test2(test *testing.T) {
 	waitgroup := sync.WaitGroup{}
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	count := 1_000_000
 	for range count {
 		waitgroup.Add(1)
@@ -46,7 +46,7 @@ func Test2(test *testing.T) {
 
 func Test3(test *testing.T) {
 	waitgroup := sync.WaitGroup{}
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	count := 100
 	for range count {
 		waitgroup.Add(1)
@@ -76,7 +76,7 @@ func Test3(test *testing.T) {
 
 func Test4(test *testing.T) {
 	waitgroup := sync.WaitGroup{}
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	count := 1_000_000
 	for range count {
 		waitgroup.Add(1)
@@ -103,7 +103,7 @@ func Test4(test *testing.T) {
 
 func Test5(test *testing.T) {
 	waitgroup := sync.WaitGroup{}
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	count := 1_000_000
 	store.GenerateNewSeeds(count)
 

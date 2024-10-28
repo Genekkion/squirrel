@@ -8,46 +8,35 @@ import (
 )
 
 const (
-	/*
-	   Required for generating V7 UUIDs.
-	*/
+	// Required for generating V7 UUIDs.
 	NANOSECONDS_PER_MILLISECONDS = 1_000_000
 )
 
-/*
-The main struct for generating unique UUIDs based on seed and timestamp,
-adapted from the V7 UUID standard. This struct should not be created on
-its own, but rather by FromSeedBytes([16]byte) or NewUUIDSeed().
-
-The better way to generate one is to use a SeedStore.
-*/
+// The main struct for generating unique UUIDs based on seed and timestamp,
+// adapted from the V7 UUID standard. This struct should not be created on
+// its own, but rather by FromSeedBytes([16]byte) or NewUUIDSeed().
+//
+// The better way to generate one is to use a SeedStore.
 type UUIDSeed struct {
-	/*
-		The seedBytes used for generating the UUIDs. Further implementations
-		may reduce the size of seedBytes since not all bits are required for
-		randomness.
-	*/
+
+	// The seedBytes used for generating the UUIDs. Further implementations
+	// may reduce the size of seedBytes since not all bits are required for
+	// randomness.
 	seedBytes [16]byte
 
-	/*
-		Timestamp for monotonic increments of the timestamp embedded
-		in the generated V7 UUID
-	*/
+	// Timestamp for monotonic increments of the timestamp embedded
+	// in the generated V7 UUID
 	lastV7Time int64
 
-	/*
-		The mutex lock required for safely generating the V7 UUIDs across multiple
-		threads.
-	*/
+	// The mutex lock required for safely generating the V7 UUIDs across multiple
+	// threads.
 	mutex sync.Mutex
 }
 
-/*
-This should not be used in most cases. This is only for when the seed bytes are
-received from another source, such as from a different machine, and sent as bytes.
-
-Note that the timestamp will be set to the current time.
-*/
+// This should not be used in most cases. This is only for when the seed bytes are
+// received from another source, such as from a different machine, and sent as bytes.
+//
+// Note that the timestamp will be set to the current time.
 func FromSeedBytes(seedBytes [16]byte) *UUIDSeed {
 	return &UUIDSeed{
 		seedBytes:  seedBytes,
@@ -56,11 +45,9 @@ func FromSeedBytes(seedBytes [16]byte) *UUIDSeed {
 	}
 }
 
-/*
-Returns a new random uuidSeed struct. May error due to
-the underlying call to uuid.NewRandom() from
-"github.com/google/uuid".
-*/
+// Returns a new random uuidSeed struct. May error due to
+// the underlying call to uuid.NewRandom() from
+// "github.com/google/uuid".
 func NewUUIDSeed() (*UUIDSeed, error) {
 	baseId, err := uuid.NewRandom()
 	if err != nil {
@@ -73,26 +60,20 @@ func NewUUIDSeed() (*UUIDSeed, error) {
 	}, nil
 }
 
-/*
-Returns a new copy of the seed bytes.
-
-Note that the built-in seed bytes is considered immutable after initialisation.
-*/
+// Returns a new copy of the seed bytes.
+//
+// Note that the built-in seed bytes is considered immutable after initialisation.
 func (seed *UUIDSeed) GetSeedBytes() [16]byte {
 	return seed.seedBytes
 }
 
-/*
-Generates a V7 UUID based on the current time, with randomness based on the
-seed bytes specified within the seed struct.
-*/
+// Generates a V7 UUID based on the current time, with randomness based on the
+// seed bytes specified within the seed struct.
 func (seed *UUIDSeed) GenerateV7() uuid.UUID {
 	return uuid.UUID(seed.GenerateV7Bytes())
 }
 
-/*
-Similar to GenerateV7(), but returns as bytes instead
-*/
+// Similar to GenerateV7(), but returns as bytes instead
 func (seed *UUIDSeed) GenerateV7Bytes() [16]byte {
 	milliseconds, sequence := seed.getV7Time()
 	seedCopy := seed.GetSeedBytes()
@@ -100,30 +81,24 @@ func (seed *UUIDSeed) GenerateV7Bytes() [16]byte {
 	return seedCopy
 }
 
-/*
-Adapted from "github.com/google/uuid". Used for generating V7 UUIDs.
-*/
+// Adapted from "github.com/google/uuid". Used for generating V7 UUIDs.
 func nanosecondsToMillisecondsAndSequence(nanoseconds int64) (int64, int64) {
 	milliseconds := nanoseconds / NANOSECONDS_PER_MILLISECONDS
 	sequence := (nanoseconds - milliseconds*NANOSECONDS_PER_MILLISECONDS) >> 8
 	return milliseconds, sequence
 }
 
-/*
-Generates a V7 UUID with a specified timestamp. The timestamp can be gotten from
-a time.Time object via the UnixNano() function.
-*/
+// Generates a V7 UUID with a specified timestamp. The timestamp can be gotten from
+// a time.Time object via the UnixNano() function.
 func GenerateV7WithTimestamp(seedBytes [16]byte, timestamp int64) [16]byte {
 	milliseconds, sequence := nanosecondsToMillisecondsAndSequence(timestamp)
 	makeV7(&seedBytes, milliseconds, sequence)
 	return seedBytes
 }
 
-/*
-Converts seed bytes into a V7 UUID in place.
-
-Adapted from "github.com/google/uuid".
-*/
+// Converts seed bytes into a V7 UUID in place.
+//
+// Adapted from "github.com/google/uuid".
 func makeV7(seed *[16]byte, milliseconds int64, sequence int64) {
 	seed[0] = byte(milliseconds >> 40)
 	seed[1] = byte(milliseconds >> 32)
@@ -138,15 +113,15 @@ func makeV7(seed *[16]byte, milliseconds int64, sequence int64) {
 	seed[8] = (seed[8] & 0x3f) | 0x80
 }
 
-/*
-Gets the current time and outputs the associated milliseconds and
-sequence. Outputs unique values due to monotonic nature by comparing
-previous timestamp data. Mutex used to ensure safe thread access.
-
-Adapted from "github.com/google/uuid".
-*/
+// Gets the current time and outputs the associated milliseconds and
+// sequence. Outputs unique values due to monotonic nature by comparing
+// previous timestamp data. Mutex used to ensure safe thread access.
+//
+// Adapted from "github.com/google/uuid".
 func (seed *UUIDSeed) getV7Time() (int64, int64) {
 	seed.mutex.Lock()
+	defer seed.mutex.Unlock()
+
 	nanoseconds := time.Now().UnixNano()
 	milliseconds := nanoseconds / NANOSECONDS_PER_MILLISECONDS
 	sequence := (nanoseconds - milliseconds*NANOSECONDS_PER_MILLISECONDS) >> 8
@@ -158,8 +133,6 @@ func (seed *UUIDSeed) getV7Time() (int64, int64) {
 		sequence = now & 0xfff
 	}
 	seed.lastV7Time = now
-
-	seed.mutex.Unlock()
 
 	return milliseconds, sequence
 }

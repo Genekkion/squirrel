@@ -3,7 +3,7 @@ package seeds
 import "testing"
 
 func Test6(test *testing.T) {
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	store.GenerateNewSeeds(1)
 	seeds := store.BorrowSeeds(1)
 	if len(seeds) != 1 {
@@ -32,7 +32,7 @@ func Test6(test *testing.T) {
 }
 
 func Test7(test *testing.T) {
-	store := NewSeedStorage()
+	store := NewSeedStore()
 	store.GenerateNewSeeds(1)
 	seeds := store.BorrowSeeds(1)
 	if len(seeds) != 1 {
